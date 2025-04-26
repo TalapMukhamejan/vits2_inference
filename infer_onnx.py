@@ -7,22 +7,78 @@ import soundfile as sf
 import sounddevice as sd
 import argparse
 import os
+import sys
 
 import commons
 import utils
 from text import text_to_sequence
 
-def get_text(text, hps, lang):
+# Flag to check if ruaccent is installed
+HAS_RUACCENT = False
+RUACCENT_MODEL = None
+try:
+    import ruaccent
+    HAS_RUACCENT = True
+except ImportError:
+    pass
+
+def initialize_ruaccent(model_size='turbo2', use_dictionary=True, device='CPU'):
+    """Initialize the ruaccent model with the specified parameters."""
+    global RUACCENT_MODEL
+    
+    if not HAS_RUACCENT:
+        print("Warning: ruaccent module not found. Install it with: pip install ruaccent")
+        return False
+    
+    try:
+        from ruaccent import RUAccent
+        RUACCENT_MODEL = RUAccent()
+        RUACCENT_MODEL.load(
+            omograph_model_size=model_size, #  tiny, tiny2, tiny2.1, turbo2, turbo3, turbo3.1, turbo, big_poetry
+            use_dictionary=use_dictionary,
+            device=device,
+            tiny_mode=False
+        )
+        print(f"RUAccent model '{model_size}' initialized on {device} (dictionary: {'enabled' if use_dictionary else 'disabled'})")
+        return True
+    except Exception as e:
+        print(f"Error initializing RUAccent model: {str(e)}")
+        return False
+
+def apply_accent(text):
+    """Apply Russian accent marks using ruaccent."""
+    global RUACCENT_MODEL
+    
+    if RUACCENT_MODEL is None:
+        print("Warning: RUAccent model not initialized. Initializing...")
+        if not initialize_ruaccent():
+            return text
+    
+    try:
+        accented_text = RUACCENT_MODEL.process_all(text)
+        return accented_text
+    except Exception as e:
+        print(f"Warning: Error applying Russian accents: {str(e)}")
+        return text
+
+def get_text(text, hps, lang, use_accent=False):
+    # Apply Russian accent if requested and language is Russian
+    if use_accent and lang.lower() == 'ru':
+        accented_text = apply_accent(text)
+        print(f"Original text: {text}")
+        print(f"Text with accents: {accented_text}")
+        text = accented_text
+    
     text_norm = text_to_sequence(text, hps.data.text_cleaners, lang)
     if hps.data.add_blank:
         text_norm = commons.intersperse(text_norm, 0)
     text_norm = torch.LongTensor(text_norm)
     return text_norm
 
-def synthesize_speech(text, model, hps, output_path, lang, sid):
+def synthesize_speech(text, model, hps, output_path, lang, sid, use_accent=False):
     start_time = time.time()
     
-    phoneme_ids = get_text(text, hps, lang)
+    phoneme_ids = get_text(text, hps, lang, use_accent)
     text = np.expand_dims(np.array(phoneme_ids, dtype=np.int64), 0)
     text_lengths = np.array([text.shape[1]], dtype=np.int64)
     scales = np.array([0.667, 1.0, 0.8], dtype=np.float32)
@@ -66,6 +122,14 @@ def parse_arguments():
                        help="Speaker ID for multi-speaker models (default: None)")
     parser.add_argument("--play", action="store_true",
                        help="Play audio after synthesis (default: False)")
+    parser.add_argument("--accent", action="store_true",
+                       help="Apply Russian accent marks (only works with --lang ru)")
+    parser.add_argument("--accent-model", type=str, default="turbo2",
+                       help="RUAccent model size (default: turbo2, options: tiny, tiny2, tiny2.1, turbo2, turbo3, turbo3.1, turbo, big_poetry)")
+    parser.add_argument("--accent-dictionary", action="store_true", default=True,
+                       help="Use dictionary for accents (default: True)")
+    parser.add_argument("--accent-device", type=str, default="CPU",
+                       help="Device to run ruaccent model on (default: CPU, options: CPU, CUDA)")
     
     return parser.parse_args()
 
@@ -78,6 +142,26 @@ def main():
     lang = args.lang
     sid = args.sid
     should_play = args.play
+    use_accent = args.accent
+    accent_model = args.accent_model
+    accent_dictionary = args.accent_dictionary
+    accent_device = args.accent_device
+    
+    # Check if accent flag is used with non-Russian language
+    if use_accent and lang.lower() != 'ru':
+        print(f"Warning: --accent flag is only applicable for Russian language (--lang ru)")
+        use_accent = False
+    
+    # Initialize ruaccent if needed
+    if use_accent:
+        if not HAS_RUACCENT:
+            print("Warning: ruaccent module not found. Install it with: pip install ruaccent")
+            print("Continuing without accent marks...")
+            use_accent = False
+        else:
+            if not initialize_ruaccent(model_size=accent_model, use_dictionary=accent_dictionary, device=accent_device):
+                print("Continuing without accent marks...")
+                use_accent = False
     
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
@@ -94,7 +178,7 @@ def main():
         else:
             output_path = f"{output_dir}/output.wav"
         
-        generation_time = synthesize_speech(args.text, model, hps, output_path, lang, sid)
+        generation_time = synthesize_speech(args.text, model, hps, output_path, lang, sid, use_accent)
         
         print(f"Speech synthesized and saved to {output_path}")
         print(f"Generation time: {generation_time:.2f} seconds")
@@ -117,7 +201,7 @@ def main():
 
         output_path = f"{output_dir}/output_{counter}.wav"
         
-        generation_time = synthesize_speech(text, model, hps, output_path, lang, sid)
+        generation_time = synthesize_speech(text, model, hps, output_path, lang, sid, use_accent)
         
         print(f"Speech synthesized and saved to {output_path}")
         print(f"Generation time: {generation_time:.2f} seconds")
