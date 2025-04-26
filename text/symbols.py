@@ -1,5 +1,6 @@
 _pad = '_'
-_punctuation = ' !+,-.:;?«»—'
+_punctuation_ru_kz = ' !+,-.:;?«»—'
+_punctuation_en = ';:,.!?¡¿—…"«»"" '
 
 def get_letters(lang):
     if lang == 'kz':
@@ -7,8 +8,6 @@ def get_letters(lang):
     elif lang == 'ru':
         return 'абвгдежзийклмнопрстуфхцчшщъыьэюяё'
     elif lang == 'en':
-        global _punctuation
-        _punctuation = ';:,.!?¡¿—…"«»“” '
         return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     else:
         raise ValueError(f"Unsupported language: {lang}")
@@ -16,4 +15,7 @@ def get_letters(lang):
 _letters_ipa = "ɑɐɒæɓʙβɔɕçɗɖðʤəɘɚɛɜɝɞɟʄɡɠɢʛɦɧħɥʜɨɪʝɭɬɫɮʟɱɯɰŋɳɲɴøɵɸθœɶʘɹɺɾɻʀʁɽʂʃʈʧʉʊʋⱱʌɣɤʍχʎʏʑʐʒʔʡʕʢǀǁǂǃˈˌːˑʼʴʰʱʲʷˠˤ˞↓↑→↗↘'̩'ᵻ"
 
 def get_symbols(lang):
-    return [_pad] + list(_punctuation) + list(get_letters(lang)) + list(_letters_ipa)
+    if lang == 'en':
+        return [_pad] + list(_punctuation_en) + list(get_letters(lang)) + list(_letters_ipa)
+    else:
+        return [_pad] + list(_punctuation_ru_kz) + list(get_letters(lang)) + list(_letters_ipa)
