@@ -35,27 +35,27 @@ python infer_onnx.py --model <model_path> --config-path <config_path> [options]
 
 #### 1. Save only (default):
 ```bash
-python infer_onnx.py --model vits2_rus_girl_accent.onnx --config-path config_rus_girl.json --text "Всем привет!" --lang ru
+python infer_onnx.py --model model_name.onnx --config-path config.json --text "Всем привет!" --lang ru
 ```
 
 #### 2. Save and play:
 ```bash
-python infer_onnx.py --model vits2_rus_girl_accent.onnx --config-path config_rus_girl.json --text "Всем привет!" --lang ru --play
+python infer_onnx.py --model model_name.onnx --config-path config.json --text "Всем привет!" --lang ru --play
 ```
 
 #### 3. Interactive mode, save only:
 ```bash
-python infer_onnx.py --model vits2_rus_girl_accent.onnx --config-path config_rus_girl.json --lang ru
+python infer_onnx.py --model model_name.onnx --config-path config.json --lang ru
 ```
 
 #### 4. Interactive mode, save and play:
 ```bash
-python infer_onnx.py --model vits2_rus_girl_accent.onnx --config-path config_rus_girl.json --lang ru --play
+python infer_onnx.py --model model_name.onnx --config-path config.json --lang ru --play
 ```
 
 #### 5. With Russian accent marks:
 ```bash
-python infer_onnx.py --model vits2_rus_girl_accent.onnx --config-path config_rus_girl.json --text "Я говорю по-русски. Это замок на двери." --lang ru --accent
+python infer_onnx.py --model model_name.onnx --config-path config.json --text "Я говорю по-русски. Это замок на двери." --lang ru --accent
 ```
 
 
