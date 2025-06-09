@@ -6,7 +6,7 @@ def get_letters(lang):
     if lang == 'kz':
         return 'аәбвгғдеёжзийкқлмнңоөпрстуұүфхһцчшщъыіьэюя'
     elif lang == 'ru':
-        return 'абвгдежзийклмнопрстуфхцчшщъыьэюяё'
+        return 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
     elif lang == 'en':
         return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     else:
