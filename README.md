@@ -5,7 +5,7 @@ I took the code from this [repo](https://github.com/p0p4k/vits2_pytorch) to do i
 1. Python >= 3.10 (I used 3.11)
 2. Clone this repository
 3. Install espeak and requirements: `pip install -r requirements.txt`
-   - **Windows users **: espeak installation can be tricky. See [this issue](https://github.com/bootphon/phonemizer/issues/44) for installation guide
+   - **Windows users**: espeak installation can be tricky. See [this issue](https://github.com/bootphon/phonemizer/issues/44) for installation guide
 4. Add your onnx model into folder, with your config file
 5. Adjust your symbols in text/symbols.py if needed
 6. For Russian accent support: `pip install ruaccent`
